@@ -120,6 +120,35 @@ $ migrate -path db/migration -database "postgresql://root:secret@localhost:5432/
 ```bash
 # (1) install sqlc
 $ brew install sqlc
+
+# (2)
+$ sqlc init
+
+```
+
+### go mod init
+
+```bash
+# (1) go mod init
+$ go mod init github.paypal.com/runzhou/go-backend-service
+
+# (2) install go dependencies
+$ go mod tidy
+
+# (3) don't modify auto generate sqlc go files
+
+# (4) execute only
+-- name: updateAccount :exec
+UPDATE accounts
+SET balance = $2
+WHERE id = $1;
+
+# (5) execute with return
+-- name: updateAccount :one
+UPDATE accounts
+SET balance = $2
+WHERE id = $1
+RETURNING *;
 ```
 
 <br><br>
