@@ -4,9 +4,10 @@ go-backend-service
 
 [class udemy page](https://pplearn.udemy.com/course/backend-master-class-golang-postgresql-kubernetes/learn/lecture/25820662?learning_path_id=4257034#overview)
 
-| Key                              | value                    |
-| -------------------------------- | ------------------------ |
-| `$ history \| grep "docker run"` | display all the commands |
+| Key                              | value                                   |
+| -------------------------------- | --------------------------------------- |
+| `$ history \| grep "docker run"` | display all the commands                |
+| offset and limit                 | https://dataschool.com/learn-sql/limit/ |
 
 # Section1: Working with database [Postgres + SQLC]
 
@@ -152,3 +153,8 @@ RETURNING *;
 ```
 
 <br><br>
+
+## 1.4 unit test for CRUD
+
+[golang lib pq](https://github.com/lib/pq) <br>
+[golang testify](https://github.com/stretchr/testify) <br>
