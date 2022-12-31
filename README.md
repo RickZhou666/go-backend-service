@@ -9,6 +9,18 @@ go-backend-service
 | `$ history \| grep "docker run"` | display all the commands                |
 | offset and limit                 | https://dataschool.com/learn-sql/limit/ |
 
+<br><br>
+
+Postgres command<br>
+
+| Key                                | value              |
+| ---------------------------------- | ------------------ |
+| `SELECT datname FROM pg_database;` | show all databases |
+| `SELECT now();`                    |                    |
+| `\q;`                              |                    |
+| `\c simple_bank;`                  |                    |
+| `\dt;`                             | show all tabls     |
+
 # Section1: Working with database [Postgres + SQLC]
 
 <br><br><br>
@@ -35,7 +47,7 @@ $ docker run -d -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -p 5432:5432 -
 
 # 4. connect to container
 # -it: run command as an interactive TTY session
-$ docker exec -it postgres15 psql -U postgres
+# $ docker exec -it postgres15 psql -U postgres
 $ docker exec -it postgres15 psql -U root
 
 # display now
@@ -158,3 +170,18 @@ RETURNING *;
 
 [golang lib pq](https://github.com/lib/pq) <br>
 [golang testify](https://github.com/stretchr/testify) <br>
+
+```bash
+# -v            :for verbose log
+# -cover        :to measure code coverage
+# ./...         :to run all uts
+# -count=1      :to disable cache. otherwise it will read from cache directly
+go test -v --cover -count=1 ./...
+```
+
+if has `Testxxxx` prefix, it will run as unit test<br>
+`func TestCreateaccount(t *testing.T) {`
+
+`run package tests` - run all unit tests<br>
+`run test` - run single unit test<br>
+![imgs](./imgs/Xnip2022-12-31_23-02-53.jpg)
