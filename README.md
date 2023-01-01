@@ -415,7 +415,296 @@ American National Standards Insititues - ANSI
 
 <br><br>
 
-### 1.8.3
+### 1.8.3 Mysql
+
+```bash
+# (1) pull mysql
+$ docker pull mysql:
+
+# (2) run image in container
+$ docker run -d -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -p 5432:5432 --name postgres15 postgres:15-alpine
+
+# (3) exec containter
+$ docker exec -it mysql8 mysql -uroot -psecret simple_bank
+
+# (4) check txn isolation
+>> select @@transaction_isolation;
+>> select @@global.transaction_isolation;
+
+# (5) change txn isolation level
+>> set session transaction isolation level read uncommited;
+```
+
+<br><br>
+
+#### 1.8.3.0 Isolation levels in MySQL
+
+![imgs](./imgs/Xnip2023-01-02_01-06-08.jpg)
+
+<br><br>
+
+#### 1.8.3.1 read uncommited
+
+<br><br>
+
+#### 1.8.3.2 read commited
+
+<br><br>
+
+#### 1.8.3.3 repeatable read
+
+will read same row, but result is not consistent. If another txn increase by 10 to 110, current txn will still read it as 100, if we increase by 10 as well in conrrent txn, it will change to 120. but it's from 100 -> 120
+
+<br><br>
+
+#### 1.8.3.4 serializable
+
+1. the read txn will block any update or delete txn in same row
+2. if update in both txn, deadlock will occur
+3. if we execute both select in 2 txn, it's ok. then we execute insert in txn1, it will block as txn2 is holding a share lock. after we execute insert in txn2, it will fail and release lock, txn1 can execute.
+
+<br><br>
+
+### 1.8.4 postgres
+
+```sql
+-- (1) login to psql
+$ docker exec -it postgres15 psql -U root
+-- (2) check txn isolation level
+>> show transaction isolation level;
+-- default as read committed
+```
+
+<br><br>
+
+#### 1.8.4.0 Isolation levels in Postgres
+
+![imgs](./imgs/Xnip2023-01-02_01-06-55.jpg)
+
+<br><br>
+
+#### 1.8.4.1 read uncommited
+
+```sql
+-- (1) postgres can only set txn isolation level during txn
+>> BEGIN;
+>> set transaction isolation level read uncommitted;
+>> show transaction isolation level;
+
+-- (2) select all accounts
+>> SELECT * FROM accounts;
+
+-- (3) checking id 1 in txn 2
+>> SELECT * FROM accounts where id = 1;
+-- result in $100
+
+-- (4) update balance in txn 1
+>> update accounts set balance = balance - 10 where id = 1 returning *;
+-- result in $90
+
+-- (5) checking id 1 in txn 2
+>> SELECT * FROM accounts where id = 1;
+-- result still in $100
+
+-- (6) commit in txn 1
+>> COMMIT;
+
+-- (7) checking id 1 in txn 2
+>> SELECT * FROM accounts where id = 1;
+-- result in $90
+```
+
+[PostgreSQL's Read Uncommitted mode behaves like Read Committed](https://www.postgresql.org/docs/9.5/transaction-iso.html)
+
+<br><br>
+
+#### 1.8.4.2 read commited
+
+`phantom read occured`
+
+```sql
+-- (1) postgres can only set txn isolation level during txn
+>> BEGIN;
+>> set transaction isolation level read committed;
+>> show transaction isolation level;
+
+-- (2) select all accounts in txn 1
+>> SELECT * FROM accounts;
+
+-- (3) checking id 1 in txn 2
+>> SELECT * FROM accounts where id = 1;
+-- result in $90
+
+-- (4) checking all balance >= 90 in txn 2
+>> SELECT * FROM accounts where balance >= 90;
+-- result in 2 records
+
+-- (5) update balance in txn 1
+>> update accounts set balance = balance - 10 where id = 1 returning *;
+-- result in $80
+
+-- (6) commit in txn 1
+>> COMMIT;
+
+-- (7) checking id 1 in txn 2
+>> SELECT * FROM accounts where id = 1;
+-- result will be in $80
+
+-- (8) checking all balance >= 90 in txn 2
+>> SELECT * FROM accounts where balance >= 90;
+-- we will only see 1 record, so Phantom read occured
+
+-- (9) commit txn 2
+>> commit;
+```
+
+<br><br>
+
+#### 1.8.4.3 repeatable read
+
+1. `phantom read` is prevented
+2. prevent update on row that is changed in another txn.
+3. `serialization anomaly` occured
+
+```sql
+-- (1) postgres can only set txn isolation level during txn
+>> BEGIN;
+>> set transaction isolation level repeatable read;
+>> show transaction isolation level;
+
+-- (2) select all accounts in txn 1
+>> SELECT * FROM accounts;
+
+-- (3) checking id 1 in txn 2
+>> SELECT * FROM accounts where id = 1;
+-- result in $90
+
+-- (4) checking all balance >= 80 in txn 2
+>> SELECT * FROM accounts where balance >= 80;
+-- result in 2 records
+
+-- (5) update balance in txn 1
+>> update accounts set balance = balance - 10 where id = 1 returning *;
+-- result in $70
+
+-- (6) commit in txn 1
+>> COMMIT;
+
+-- (7) checking id 1 in txn 2
+>> SELECT * FROM accounts where id = 1;
+-- result will still be in $80
+
+-- (8) checking all balance >= 80 in txn 2
+>> SELECT * FROM accounts where balance >= 80;
+-- we will only see 2 records, so Phantom read is prevented
+
+-- (9) update id 1 in txn 2
+>> update accounts set balance = balance - 10 where id = 1 returning *;
+-- ERROR:  current transaction is aborted, commands ignored until end of transaction block
+
+-- (9) commit txn 2
+>> commit;
+```
+
+<br><br>
+
+`replicate serialization anomaly`
+
+```sql
+-- (1) postgres can only set txn isolation level during txn
+>> BEGIN;
+>> set transaction isolation level repeatable read;
+>> show transaction isolation level;
+
+-- (2) select all accounts in txn 1
+>> SELECT * FROM accounts;
+
+-- (3) sum balance and assign to a new account in txn 1
+>> SELECT sum(balance) FROM accounts;
+>> INSERT INTO accounts(owner, balance, currency) VALUES ('sum', 170, 'USD');
+>> SELECT * FROM accounts;
+-- result in 3 records
+
+-- (4) checking all in txn 2
+>> SELECT * FROM accounts;
+-- result still in 2 records. as we use repeatable read level
+
+
+-- (5) sum balance and assign to a new account in txn 2
+>> SELECT sum(balance) FROM accounts;
+>> INSERT INTO accounts(owner, balance, currency) VALUES ('sum', 170, 'USD');
+>> SELECT * FROM accounts;
+-- result in 3 records
+
+-- (6) commit both txn 1 and txn 2
+>> COMMIT;
+
+-- (7) check all in txn 2
+>> SELECT * FROM accounts;
+-- there are two sum records. this is serialization anomaly
+```
+
+#### 1.8.4.4 serialization
+
+1. `serialization anomaly` is prevented
+
+```sql
+-- (1) postgres can only set txn isolation level during txn
+>> BEGIN;
+>> set transaction isolation level serializable;
+>> show transaction isolation level;
+
+-- (2) select all accounts in txn 1
+>> SELECT * FROM accounts;
+
+-- (3) sum balance and assign to a new account in txn 1
+>> SELECT sum(balance) FROM accounts;
+>> INSERT INTO accounts(owner, balance, currency) VALUES ('sum', 510, 'USD');
+>> SELECT * FROM accounts;
+-- result in 5 records with new added record
+
+-- (4) checking all in txn 2
+>> SELECT * FROM accounts;
+-- result still in 2 records. as we use repeatable read level
+
+
+-- (5) sum balance and assign to a new account in txn 2
+>> SELECT sum(balance) FROM accounts;
+>> INSERT INTO accounts(owner, balance, currency) VALUES ('sum', 510, 'USD');
+>> SELECT * FROM accounts;
+-- result is identical with txn 1
+
+-- (6) commit both txn 1 and txn 2
+>> COMMIT;
+-- txn 1 is ok
+
+>> COMMIT;
+-- tnx 2 is failed
+-- ERROR:  could not serialize access due to read/write dependencies among transactions
+-- DETAIL:  Reason code: Canceled on identification as a pivot, during commit attempt.
+-- HINT:  The transaction might succeed if retried.
+
+-- (7) check all in txn 2
+>> SELECT * FROM accounts;
+-- records stay the same. serialization anomaly is prevented
+```
+
+<br><br>
+
+### 1.8.5 Compare MySQL vs Postgres
+
+| item             | MySQL             | PostgreSQL             |
+| ---------------- | ----------------- | ---------------------- |
+| isolation levels | 4                 | 3                      |
+| mechanism        | locking mechanism | dependencies detection |
+| default level    | repeatable read   | read committed         |
+
+`Keep in mind`
+
+1. retry mechanism <br>
+   there migh be errors, timeout or deadlock
+2. read documentation <br>
+   each database engine might implement isolation level differently
 
 <br><br>
 
