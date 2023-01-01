@@ -100,32 +100,18 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		fmt.Println(txName, "get account 1")
 		// TODO: update accounts' balance including preventing deadlock and concurrency
-		account1, err := q.getAccountForUpdate(ctx, arg.FromAccountID)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(txName, "update account 1")
-		result.FromAccount, err = q.updateAccount(ctx, updateAccountParams{
-			ID:      arg.FromAccountID,
-			Balance: account1.Balance - arg.Amount,
+		result.FromAccount, err = q.addAccountBalance(ctx, addAccountBalanceParams{
+			ID:     arg.FromAccountID,
+			Amount: -arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "get account 2")
-		account2, err := q.getAccountForUpdate(ctx, arg.ToAccountID)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(txName, "update account 2")
-		result.ToAccount, err = q.updateAccount(ctx, updateAccountParams{
-			ID:      arg.ToAccountID,
-			Balance: account2.Balance + arg.Amount,
+		result.ToAccount, err = q.addAccountBalance(ctx, addAccountBalanceParams{
+			ID:     arg.ToAccountID,
+			Amount: arg.Amount,
 		})
 		if err != nil {
 			return err
