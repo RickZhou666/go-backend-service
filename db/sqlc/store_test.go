@@ -26,12 +26,10 @@ func TestTransferTx(t *testing.T) {
 
 	// run n concurrent transfer transaction
 	for i := 0; i < n; i++ {
-		txName := fmt.Sprintf("tx %d", i+1)
 
 		go func() {
 			// context will hold txn name
-			ctx := context.WithValue(context.Background(), txKey, txName)
-			result, err := store.TransferTx(ctx, TransferTxParams{
+			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
 				Amount:        amount,
@@ -120,5 +118,65 @@ func TestTransferTx(t *testing.T) {
 	fmt.Println(">> after:", updatedAccount1.Balance, updatedAccount2.Balance)
 	require.Equal(t, account1.Balance-int64(n)*amount, updatedAccount1.Balance)
 	require.Equal(t, account2.Balance+int64(n)*amount, updatedAccount2.Balance)
+}
 
+func TestTransferTxDeadlock(t *testing.T) {
+	store := NewStore(testDB)
+
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
+	fmt.Println(">> before:", account1.Balance, account2.Balance)
+
+	// run n concurrent transfer transactions
+	// 5 txn sending money from account 1 to account 2
+	// 5 txn sending money from account 2 to account 1
+	n := 10
+	amount := int64(10)
+
+	// use channel. channel is designed to connect concurrency in go rountine
+	errs := make(chan error)
+	// results := make(chan TransferTxResult)
+
+	// run n concurrent transfer transaction
+	for i := 0; i < n; i++ {
+		fromAccountID := account1.ID
+		toAccountID := account2.ID
+
+		// when it's odd, account2 -> account1
+		// when it's even, account1 -> account2
+		if i%2 == 1 {
+			fromAccountID = account2.ID
+			toAccountID = account2.ID
+		}
+
+		go func() {
+			// context will hold txn name
+			_, err := store.TransferTx(context.Background(), TransferTxParams{
+				FromAccountID: fromAccountID,
+				ToAccountID:   toAccountID,
+				Amount:        amount,
+			})
+			// channel on the left. data to be sent on the right
+			errs <- err
+			// results <- result
+		}()
+	}
+
+	// check results
+	for i := 0; i < n; i++ {
+		err := <-errs
+		require.NoError(t, err)
+	}
+
+	// check the final updated balance
+	updatedAccount1, err := testQueries.getAccount(context.Background(), account1.ID)
+	require.NoError(t, err)
+
+	updatedAccount2, err := testQueries.getAccount(context.Background(), account2.ID)
+	require.NoError(t, err)
+
+	fmt.Println(">> after:", updatedAccount1.Balance, updatedAccount2.Balance)
+
+	require.Equal(t, account1.Balance, updatedAccount1.Balance)
+	require.Equal(t, account2.Balance, updatedAccount2.Balance)
 }

@@ -17,13 +17,14 @@ go-backend-service
 
 Postgres command<br>
 
-| Key                                | value              |
-| ---------------------------------- | ------------------ |
-| `SELECT datname FROM pg_database;` | show all databases |
-| `SELECT now();`                    |                    |
-| `\q;`                              |                    |
-| `\c simple_bank;`                  |                    |
-| `\dt;`                             | show all tabls     |
+| Key                                                                          | value              |
+| ---------------------------------------------------------------------------- | ------------------ |
+| `SELECT datname FROM pg_database;`                                           | show all databases |
+| `SELECT now();`                                                              |                    |
+| `\q;`                                                                        |                    |
+| `\c simple_bank;`                                                            |                    |
+| `\dt;`                                                                       | show all tables    |
+| INSERT INTO accounts (owner, balance, currency) VALUES ('rick', 100, 'USD'); | insert column      |
 
 # Section1: Working with database [Postgres + SQLC]
 
@@ -249,6 +250,8 @@ facing github link issue, remove from local and clone from remote<br>
 
 ## 1.6 DB transaction lock & how to handle deadlock in Golang
 
+[postgresql lock monitoring](https://wiki.postgresql.org/wiki/Lock_Monitoring)
+
 <br><br>
 
 ### 1.6.1 test in terminal for 2 concurrent txn
@@ -286,7 +289,11 @@ $ make sqlc
 
 ### 1.6.3 deadlock detected
 
+<br><br>
+
 #### 1.6.3.1 replicate in terminal
+
+<br><br>
 
 #### 1.6.3.2 way1: remove foreign key
 
@@ -303,7 +310,9 @@ $ make migratedown
 $ make migrateup
 ```
 
-#### 1.6.3.3 way2: remove foreign key
+<br><br>
+
+#### 1.6.3.3 way2: remove foreign key binding in get query
 
 ```bash
 # (1) as the foreign key is linked to id which is primary key, and we won't change it
@@ -318,3 +327,110 @@ $ make sqlc
 
 
 ```
+
+<br><br>
+
+## 1.7 how to avoid db deadlock?
+
+### 1.7.1 replicate deadlock
+
+```sql
+-- 1. run below in 1st
+BEGIN;
+
+UPDATE accounts SET balance = balance - 10 WHERE id = 1 RETURNING *;
+
+-- 2. run below in 2nd
+BEGIN;
+
+UPDATE accounts SET balance = balance - 10 WHERE id = 2 RETURNING *;
+
+-- 3. then run below in 1st
+UPDATE accounts SET balance = balance + 10 WHERE id = 2 RETURNING *;
+-- then it's getting stuck
+-- as txn 2 tried to get a sharelock 908. but 908 is exclusivelock and holding by txn 1
+```
+
+![imgs](./imgs/Xnip2023-01-01_23-00-51.jpg)
+
+```sql
+-- 4. if we keeping running below in 2nd
+UPDATE accounts SET balance = balance + 10 WHERE id = 1 RETURNING *;
+-- we'll observed deadlock error
+
+```
+
+![imgs](./imgs/Xnip2023-01-01_23-03-19.jpg)
+
+<br><br>
+
+### 1.7.2 avoid deadlock
+
+`execute account in same order`
+
+```sql
+-- 1. run below in 1st
+BEGIN;
+
+UPDATE accounts SET balance = balance - 10 WHERE id = 1 RETURNING *;
+
+-- 2. run below in 2nd
+BEGIN;
+
+UPDATE accounts SET balance = balance + 10 WHERE id = 1 RETURNING *;
+-- 2nd will be block
+
+-- 3. run below in 1st
+UPDATE accounts SET balance = balance + 10 WHERE id = 2 RETURNING *;
+
+COMMIT;
+-- 2nd will return value
+```
+
+`update account with smaller id always`
+<br><br>
+
+## 1.8 Deeply understand txn isolation levels & read phenomena
+
+### 1.8.1 Read Phenomena
+
+1. Diry read<br>
+   A txn `reads` data writtern by other concurrent `uncommited` txn<br>
+
+2. Non-repeatable read<br>
+   A txn `reads` the `same row twice` and sees different value because it has been `modified` by other `commited` txn<br>
+
+3. Phantom read<br>
+   A txn `re-executes` a query to `find rows` that satisfy a condition and sees a `different set` of rows, due to changes by other `commited` txn<br>
+
+4. Serilization anomaly<br>
+   The result of a `group` of concurrent `commited txns` is `impossible to achieve` if we try to run them `sequentially` in any order without overlapping<br>
+
+<br><br>
+
+### 1.8.2 4 Standard Isolation Levels
+
+American National Standards Insititues - ANSI
+![imgs](./imgs/Xnip2023-01-01_23-57-49.jpg)
+
+<br><br>
+
+### 1.8.3
+
+<br><br>
+
+## 1.9 setup github actions for golang + postgres to run automated tests
+
+<br><br><br>
+
+# Section2: Building RESTful HTTP JSON API [Gin + JWT + PASETO]
+
+<br><br><br>
+
+# Section3: Deploying the application to production [Docker + Kubernetes + AWS]
+
+<br><br><br>
+
+# Section4: Advanced backend Topics [gRPC]
+
+<br><br><br>
