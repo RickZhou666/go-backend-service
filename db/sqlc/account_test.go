@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RickZhou666/go-backend-service/util"
 	"github.com/stretchr/testify/require"
-	"github.paypal.com/runzhou/go-backend-service/util"
 )
 
 func createRandomAccount(t *testing.T) Account {

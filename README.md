@@ -4,10 +4,14 @@ go-backend-service
 
 [class udemy page](https://pplearn.udemy.com/course/backend-master-class-golang-postgresql-kubernetes/learn/lecture/25820662?learning_path_id=4257034#overview)
 
+[github/techschool/simplebank](https://github.com/techschool/simplebank)
+
 | Key                              | value                                   |
 | -------------------------------- | --------------------------------------- |
 | `$ history \| grep "docker run"` | display all the commands                |
 | offset and limit                 | https://dataschool.com/learn-sql/limit/ |
+| `\* \&` sign in golang           | https://go.dev/tour/moretypes/1         |
+| what is go routines              | https://go.dev/tour/concurrency/1       |
 
 <br><br>
 
@@ -124,7 +128,7 @@ $ migrate -path db/migration -database "postgresql://root:secret@localhost:5432/
 
 <br><br>
 
-## 1.3 CURD with golang
+## 1.3 Generate CURD golang code from SQL
 
 [gorm](https://gorm.io/) could be very slow when there's high load <br>
 [sqlx](https://github.com/jmoiron/sqlx) <br>
@@ -137,13 +141,16 @@ $ brew install sqlc
 # (2)
 $ sqlc init
 
+# (3) generate CRUD code
+$ sqlc generate
+
 ```
 
 ### go mod init
 
 ```bash
 # (1) go mod init
-$ go mod init github.paypal.com/runzhou/go-backend-service
+$ go mod init github.com/RickZhou666/go-backend-service
 
 # (2) install go dependencies
 $ go mod tidy
@@ -185,3 +192,52 @@ if has `Testxxxx` prefix, it will run as unit test<br>
 `run package tests` - run all unit tests<br>
 `run test` - run single unit test<br>
 ![imgs](./imgs/Xnip2022-12-31_23-02-53.jpg)
+
+<br><br>
+
+## 1.5 A clean way to implement database transaction in Golang
+
+1. create a transfer record with amount = 10;
+2. create an account entry for account 1 with amount = -10
+3. create an account entry for account 2 with amount = +10
+4. subtract 10 from the balance of account 1
+5. add 10 to the balance of account 2
+
+<br>
+
+### 1.5.1. why do we need transaction?
+
+1. to provide a reliable and consistent unit of work, even in case of system failure
+2. to provide isolation between programs that access the database concurrently
+
+<br>
+
+### 1.5.2 ACID property
+
+1. atomicity (A)<br>
+   either all operations complete successfully or the transaction fails and the db is unchanged
+
+2. consistentcy (C)<br>
+   the db state must be valid after the transaction. All constraints must be satisfied
+
+3. Isolation (I)<br>
+   Concurrent transactions must not affect each other
+
+4. Durability (D)<br>
+   data written by a successful transaction must be recorded in a persistent storage
+
+<br>
+
+### 1.5.3 how to run SQL TX?
+
+```go
+// 1. make transaction
+BEGIN;
+...
+COMMIT;
+
+// 2. rollback when failure
+BEGIN;
+...
+ROLLBACK;
+```

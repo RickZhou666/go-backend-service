@@ -1,4 +1,4 @@
-module github.paypal.com/runzhou/go-backend-service
+module github.com/RickZhou666/go-backend-service
 
 go 1.19
 
