@@ -114,10 +114,10 @@ $ dropdb simple_bank
 $ exit
 
 # 8. create db from external
-$ docker exec -it postgres15 createdb --username=root --owner=root simple_bank_test
+$ docker exec -it postgres15 createdb --username=root --owner=root simple_bank
 
 # 9. access db directly
-$ docker exec -it postgres15 psql -U root simple_bank_test
+$ docker exec -it postgres15 psql -U root simple_bank
 
 # 10. migrate db up
 $ migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
@@ -240,4 +240,81 @@ COMMIT;
 BEGIN;
 ...
 ROLLBACK;
+```
+
+facing github link issue, remove from local and clone from remote<br>
+![imgs](./imgs/Xnip2023-01-01_14-22-13.jpg)
+
+<br><br>
+
+## 1.6 DB transaction lock & how to handle deadlock in Golang
+
+<br><br>
+
+### 1.6.1 test in terminal for 2 concurrent txn
+
+```bash
+# 1. start txn for 1st
+>> BEGIN;
+>> select * from accounts where id = 126 for update;
+
+# 2. start txn for 2nd
+>> BEGIN;
+>> select * from accounts where id = 126 for update;
+# the 2nd will get blocked
+
+# 3. update for the 1st
+>> update accounts set balance = 500 where id = 126;
+>> COMMIT;
+
+# 4. after we commit 1st, the 2nd is unblocked with latest result
+
+```
+
+### 1.6.2 update get query
+
+```sql
+-- (1) add get for update query
+-- name: getAccountForUpdate :one
+SELECT * FROM accounts
+WHERE id = $1 LIMIT 1
+FOR UPDATE;
+
+-- (2) update query
+$ make sqlc
+```
+
+### 1.6.3 deadlock detected
+
+#### 1.6.3.1 replicate in terminal
+
+#### 1.6.3.2 way1: remove foreign key
+
+```bash
+# (1) comment foregin key line in schema_up
+# ALTER TABLE "entries" ADD FOREIGN KEY ("account_id") REFERENCES "accounts" ("id");
+# ALTER TABLE "transfers" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("id");
+# ALTER TABLE "transfers" ADD FOREIGN KEY ("to_account_id") REFERENCES "accounts" ("id");
+
+# (2) delete db
+$ make migratedown
+
+# (3) regenerate db
+$ make migrateup
+```
+
+#### 1.6.3.3 way2: remove foreign key
+
+```bash
+# (1) as the foreign key is linked to id which is primary key, and we won't change it
+#     so we add NO KEY in get query
+-- name: getAccountForUpdate :one
+SELECT * FROM accounts
+WHERE id = $1 LIMIT 1
+FOR NO KEY UPDATE;
+
+# (2) regenerate
+$ make sqlc
+
+
 ```

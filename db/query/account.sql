@@ -7,11 +7,16 @@ INSERT INTO accounts (
     $1, $2, $3
 ) RETURNING *;
 
--- name: GetAccount :one
+-- name: getAccount :one
 SELECT * FROM accounts
 WHERE id = $1 LIMIT 1;
 
--- name: ListAccount :many
+-- name: getAccountForUpdate :one
+SELECT * FROM accounts
+WHERE id = $1 LIMIT 1
+FOR NO KEY UPDATE;
+
+-- name: listAccount :many
 SELECT * FROM accounts
 ORDER BY id
 LIMIT $1
@@ -21,6 +26,12 @@ OFFSET $2;
 UPDATE accounts 
 SET balance = $2
 WHERE id = $1
+RETURNING *;
+
+-- name: addAccountBalance :one
+UPDATE accounts
+SET balance = balance + sqlc.arg(amount)
+WHERE id = sqlc.arg(id)
 RETURNING *;
 
 -- name: deleteAccount :exec
