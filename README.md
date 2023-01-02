@@ -1073,6 +1073,9 @@ $ mv migrate /usr/bin/
     as we haven't expost the ports
     ![imgs](./imgs/Xnip2023-01-02_16-48-03.jpg)
 
+14. CI job passed
+    ![imgs](./imgs/Xnip2023-01-02_17-20-34.jpg)
+
 <br><br><br>
 
 # Section2: Building RESTful HTTP JSON API [Gin + JWT + PASETO]
