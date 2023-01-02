@@ -16,6 +16,7 @@ go-backend-service
 |                                  | https://blog.csdn.net/Ivan45007/article/details/121978869                                   |
 |                                  | [Short variable declarations](https://go.dev/ref/spec#Short_variable_declarations)          |
 |                                  | a short variable declaration may redeclare variables provided they were originally declared |
+| `curl` man page                  | https://curl.se/docs/manpage.html                                                           |
 
 <br><br>
 
@@ -1052,6 +1053,21 @@ $ touch ci.yml
 - name: Run migrations
   run: make migrateup
 ```
+
+12. migrate cmd is not installed [golang/migrate doc](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate)
+    ![imgs](./imgs/Xnip2023-01-02_16-27-32.jpg)
+
+```bash
+# 1. download
+$ curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
+$ curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
+
+# 2. move to below folder
+$ mv migrate /usr/bin/
+```
+
+`copy` correct linux file
+![imgs](./imgs/Xnip2023-01-02_16-30-36.jpg)
 
 <br><br><br>
 
