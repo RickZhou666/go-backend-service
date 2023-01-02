@@ -1021,6 +1021,20 @@ github similar to below:
 
 <br><br>
 
+### 1.9.2 Setup github Actions
+
+1. go to github repo [go-backend-service](https://github.com/RickZhou666/go-backend-service)
+2. Actions
+3. Go
+4. create local file first
+
+```bash
+$ mkdir -p .github/workflows
+$ cd .github/workflows
+$ touch ci.yml
+
+```
+
 <br><br><br>
 
 # Section2: Building RESTful HTTP JSON API [Gin + JWT + PASETO]
