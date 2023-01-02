@@ -1069,6 +1069,10 @@ $ mv migrate /usr/bin/
 `copy` correct linux file
 ![imgs](./imgs/Xnip2023-01-02_16-30-36.jpg)
 
+13. Run migrations still failed
+    as we haven't expost the ports
+    ![imgs](./imgs/Xnip2023-01-02_16-48-03.jpg)
+
 <br><br><br>
 
 # Section2: Building RESTful HTTP JSON API [Gin + JWT + PASETO]
