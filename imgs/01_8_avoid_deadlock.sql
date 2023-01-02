@@ -49,3 +49,40 @@ UPDATE accounts SET balance = balance + 10 WHERE id = 1 RETURNING *;
 UPDATE accounts SET balance = balance - 10 WHERE id = 2 RETURNING *;
 
 COMMIT;
+
+
+-- 1. get at most 5 records from accounts
+-- offset = 10, skip 10 records
+-- limits = 5, as most 5 records returned
+SELECT * FROM accounts
+ORDER BY id
+LIMIT 5
+OFFSET 10;
+
+-- 2. entries
+SELECT id, account_id, amount, created_at FROM entries
+WHERE account_id = 1
+ORDER BY id
+LIMIT 5
+OFFSET 10;
+
+
+-- 3. select all account_id = 1
+SELECT * FROM entries e
+WHERE e.account_id = 1
+ORDER BY ID;
+
+-- 3. return 17 records
+SELECT COUNT(*) FROM entries e
+WHERE e.account_id = 1;
+
+-- 4. [FALSE] return 0. as result only has 1 row
+SELECT COUNT(*) FROM entries e
+WHERE e.account_id = 1
+LIMIT 5
+OFFSET 10;
+
+-- 5. add id constraints
+SELECT COUNT(*) FROM entries e
+WHERE e.account_id = 1
+    AND e.id >= 185;

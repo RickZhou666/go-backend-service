@@ -6,25 +6,32 @@ go-backend-service
 
 [github/techschool/simplebank](https://github.com/techschool/simplebank)
 
-| Key                              | value                                   |
-| -------------------------------- | --------------------------------------- |
-| `$ history \| grep "docker run"` | display all the commands                |
-| offset and limit                 | https://dataschool.com/learn-sql/limit/ |
-| `\* \&` sign in golang           | https://go.dev/tour/moretypes/1         |
-| what is go routines              | https://go.dev/tour/concurrency/1       |
+| Key                              | value                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------- |
+| `$ history \| grep "docker run"` | display all the commands                                                                    |
+| offset and limit                 | https://dataschool.com/learn-sql/limit/                                                     |
+| `\* \&` sign in golang           | https://go.dev/tour/moretypes/1                                                             |
+| what is go routines              | https://go.dev/tour/concurrency/1                                                           |
+| `:=` and `=`                     | `:=` 初始化并赋值，回覆盖原来的值 <br> `=` 直接赋值                                         |
+|                                  | https://blog.csdn.net/Ivan45007/article/details/121978869                                   |
+|                                  | [Short variable declarations](https://go.dev/ref/spec#Short_variable_declarations)          |
+|                                  | a short variable declaration may redeclare variables provided they were originally declared |
 
 <br><br>
 
 Postgres command<br>
 
-| Key                                                                          | value              |
-| ---------------------------------------------------------------------------- | ------------------ |
-| `SELECT datname FROM pg_database;`                                           | show all databases |
-| `SELECT now();`                                                              |                    |
-| `\q;`                                                                        |                    |
-| `\c simple_bank;`                                                            |                    |
-| `\dt;`                                                                       | show all tables    |
-| INSERT INTO accounts (owner, balance, currency) VALUES ('rick', 100, 'USD'); | insert column      |
+| Key                                                                          | value                                                      |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `SELECT datname FROM pg_database;`                                           | show all databases                                         |
+| `SELECT now();`                                                              |                                                            |
+| `\q;`                                                                        |                                                            |
+| `\c simple_bank;`                                                            |                                                            |
+| `\dt;`                                                                       | show all tables                                            |
+| INSERT INTO accounts (owner, balance, currency) VALUES ('rick', 100, 'USD'); | insert column                                              |
+| `LIMIT` and `OFFSET`                                                         | https://www.postgresql.org/docs/current/queries-limit.html |
+| `LIMIT` and `OFFSET`                                                         | `LIMIT=5` at most return 5 records                         |
+| `LIMIT` and `OFFSET`                                                         | `OFFSET=10` skip first 10 records                          |
 
 # Section1: Working with database [Postgres + SQLC]
 
@@ -417,22 +424,28 @@ American National Standards Insititues - ANSI
 
 ### 1.8.3 Mysql
 
+[create table](https://www.w3schools.com/mysql/mysql_create_table.asp)
+
 ```bash
 # (1) pull mysql
-$ docker pull mysql:
+$ docker pull mysql:8
 
 # (2) run image in container
-$ docker run -d -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -p 5432:5432 --name postgres15 postgres:15-alpine
+$ docker run -e MYSQL_ROOT_PASSWORD=secret -p 3310:3306 -d --name mysql8 mysql:8
+
+# (4) create database
+$ show databases;
+$ create database simple_bank;
+$ use simple_bank;
 
 # (3) exec containter
 $ docker exec -it mysql8 mysql -uroot -psecret simple_bank
 
+
+
 # (4) check txn isolation
 >> select @@transaction_isolation;
 >> select @@global.transaction_isolation;
-
-# (5) change txn isolation level
->> set session transaction isolation level read uncommited;
 ```
 
 <br><br>
@@ -445,23 +458,293 @@ $ docker exec -it mysql8 mysql -uroot -psecret simple_bank
 
 #### 1.8.3.1 read uncommited
 
+1. facing `dirty read`
+
+```sql
+-- (1) change txn isolation level to read uncommitted in both txns
+>> set session transaction isolation level read uncommitted;
+>> select @@transaction_isolation;
+
+-- (2) start txn
+>> begin;
+-- or
+>> start transaction;
+
+-- (3) select all from txn 1
+>> select * from accounts;
+
+-- (4) select id 1 from txn 2
+>> select * from accounts where id = 1;
+
+-- (5) decrease $10 from txn 1 for id 1
+>> update accounts set balance = balance - 10 where id = 1;
+>> select * from accounts where id = 1;
+-- result in $90 for id 1
+
+-- (6) select id 1 from txn 2
+>> select * from accounts where id = 1;
+-- it display the modifed uncommited balance for id 1
+
+```
+
 <br><br>
 
 #### 1.8.3.2 read commited
+
+1. avoid `dirty read`
+2. facing `non-repetable read`
+3. facing `phantom read`
+
+```sql
+-- (1) change txn isolation level to read committed in both txns
+>> set session transaction isolation level read committed;
+>> select @@transaction_isolation;
+
+-- (2) start txn
+>> begin;
+-- or
+>> start transaction;
+
+-- (3) select all from txn 1
+>> select * from accounts;
+
+-- (4) select id 1 from txn 2
+>> select * from accounts where id = 1;
+
+-- (5) decrease $10 from txn 1 for id 1
+>> update accounts set balance = balance - 10 where id = 1;
+>> select * from accounts where id = 1;
+-- result in $80 for id 1
+
+-- (6) select id 1 from txn 2
+>> select * from accounts where id = 1;
+-- result still in $90. avoid dirty read for uncommited txn
+
+-- (7) select all from txn 2
+>> select * from accounts where balance >= 90;
+-- 2 records
+
+-- (8) commit txn 1
+>> commit;
+
+-- (9) check id 1 in txn 2
+>> select * from accounts where id = 1;
+-- result in $80 for id 1. non-repeatable read
+
+-- (10) select all from txn 2
+>> select * from accounts where balance >= 90;
+-- only 1 records. facing phantom read
+
+-- (11) commit
+>> commit;
+```
 
 <br><br>
 
 #### 1.8.3.3 repeatable read
 
+1. avoid `dirty read`
+2. avoid `non-repeatable read`
+3. avoid `phantom read`
+4. the result is not `consistent`
+
 will read same row, but result is not consistent. If another txn increase by 10 to 110, current txn will still read it as 100, if we increase by 10 as well in conrrent txn, it will change to 120. but it's from 100 -> 120
+
+```sql
+-- (1) change txn isolation level to read committed in both txns
+>> set session transaction isolation level repeatable read;
+>> select @@transaction_isolation;
+
+-- (2) start txn
+>> begin;
+-- or
+>> start transaction;
+
+-- (3) select all from txn 1
+>> select * from accounts;
+
+-- (4) select id 1 and all records from txn 2
+>> select * from accounts where id = 1;
+>> select * from accounts where balance >= 80;
+
+-- (5) decrease $10 from txn 1 for id 1
+>> update accounts set balance = balance - 10 where id = 1;
+>> select * from accounts where id = 1;
+-- result in $70 for id 1
+>> select * from accounts;
+
+-- (6) commit txn 1
+>> commit;
+
+-- (7) select id 1 from txn 2
+>> select * from accounts where id = 1;
+-- result still in $80. still the old version of id 1, avoid non-repeatable read
+
+-- (8) select all from txn 2
+>> select * from accounts where balance >= 80;
+-- still return 2 records. the query is repeatable
+
+-- (9) decrease $10 from txn 2 for id 1
+>> update accounts set balance = balance - 10 where id = 1;
+>> select * from accounts where id = 1;
+-- result in $60, which is correct value
+
+-- (8) rollback in txn 2;
+>> rollback;
+```
 
 <br><br>
 
 #### 1.8.3.4 serializable
 
+1. avoid `serialization anomaly`
+
 1. the read txn will block any update or delete txn in same row
-2. if update in both txn, deadlock will occur
-3. if we execute both select in 2 txn, it's ok. then we execute insert in txn1, it will block as txn2 is holding a share lock. after we execute insert in txn2, it will fail and release lock, txn1 can execute.
+1. if update in both txn, deadlock will occur
+1. if we execute both select in 2 txn, it's ok. then we execute insert in txn1, it will block as txn2 is holding a share lock. after we execute insert in txn2, it will fail and release lock, txn1 can execute.
+
+```sql
+-- (1) change txn isolation level to read committed in both txns
+>> set session transaction isolation level serializable;
+>> select @@transaction_isolation;
+
+-- (2) start txn
+>> begin;
+-- or
+>> start transaction;
+
+-- (3) select all from txn 1
+>> select * from accounts;
+
+-- (4) select id 1 and all records from txn 2
+>> select * from accounts where id = 1;
+
+-- (5) decrease $10 from txn 1 for id 1
+>> update accounts set balance = balance - 10 where id = 1;
+-- the update in txn 1 is blocked. In serializable level, mysql convert all plain SELECT query to SELECT FOR SHARE. the txn holding SELECT FOR SHARE only allow other txn to READ not UPDATE or DELETE.
+-- ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+-- make sure u use retry mechanism when u use serializble isolation level
+
+-- (6) restart txn in txn 1
+>> select @@transaction_isolation;
+>> begin;
+>> select * from accounts where id = 1;
+>> update accounts set balance = balance - 10 where id = 1;
+-- txn 1 blocked
+
+-- (7) update in txn 2
+>> update accounts set balance = balance - 10 where id = 1;
+-- now txn 2 is also waiting for share lock from txn 1
+-- ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
+-- txn 1 successful
+
+-- (8) rollback both txns
+>> rollback;
+
+-- (9) restart txns
+>> select @@transaction_isolation;
+>> begin;
+
+-- (10) select id 1 from txn 1
+>> select * from accounts where id = 1;
+
+-- (11) select id 1 from txn 2
+>> select * from accounts where id = 1;
+
+-- (12) update in txn 1
+>> update accounts set balance = balance - 10 where id = 1;
+-- txn 1 blocked
+
+-- (13) commit txn 2
+>> commit;
+-- share lock released, txn 1 updated
+-- account balance updated in txn 1
+
+-- (14) commit txn 1
+>> commit;
+```
+
+<br><br>
+
+#### 1.8.3.5 how mysql handle serialization anomaly
+
+1. prevent `serialization anomaly`
+
+```sql
+-- (1) change txn isolation level to read committed in both txns
+>> set session transaction isolation level serializable;
+>> select @@transaction_isolation;
+
+-- (2) start txn
+>> begin;
+-- or
+>> start transaction;
+
+-- (3) select all from txn 1
+>> select * from accounts;
+
+-- (4) compute sum in txn 1
+>> select sum(balance) from accounts;
+
+-- (5) insert sum in txn 1
+>> insert into accounts (owner, balance, currency) values ('sum', '160', 'usd');
+>> select * from accounts;
+
+
+-- (6) select all in txn 2
+>> select * from accounts;
+-- txn 2 is blocked, need txn 1 finish the txn
+
+-- (7) commit in txn 1
+>> commit;
+-- txn 2 display the select result
+
+-- (8) insert sum from txn 2
+>> select sum(balance) from accounts;
+>> insert into accounts (owner, balance, currency) values ('sum', '320', 'usd');
+>> select * from accounts;
+>> commit;
+-- prevent serialization anomaly
+
+```
+
+`try different orders for both txns`
+
+```sql
+-- (1) change txn isolation level to read committed in both txns
+>> set session transaction isolation level serializable;
+>> select @@transaction_isolation;
+
+-- (2) start txn
+>> begin;
+-- or
+>> start transaction;
+
+-- (3) select all and compute sum from txn 1
+>> select * from accounts;
+>> select sum(balance) from accounts;
+
+-- (4) select all and compute sum from txn 2
+>> select * from accounts;
+>> select sum(balance) from accounts;
+-- same sum as txn 1
+
+-- (5) insert sum in txn 1
+>> insert into accounts (owner, balance, currency) values ('sum', '640', 'usd');
+-- txn 1 is blocked
+
+-- (5) insert sum in txn 2
+>> insert into accounts (owner, balance, currency) values ('sum', '640', 'usd');
+-- ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
+-- txn 2 deadlock and txn 1 is successful
+
+-- (6) rollback txn 2
+rollback;
+
+-- (7) select all in txn 1
+>> select * from accounts;
+-- new sum inserted successfully
+```
 
 <br><br>
 
@@ -709,6 +992,34 @@ $ docker exec -it postgres15 psql -U root
 <br><br>
 
 ## 1.9 setup github actions for golang + postgres to run automated tests
+
+### 1.9.1 Github Actions
+
+github similar to below:
+
+1. Jenkins
+2. Travis
+3. CircleCI
+
+#### 1.9.1.1 Workflow
+
+<br><br>
+
+#### 1.9.1.2 Runner
+
+<br><br>
+
+#### 1.9.1.3 Job
+
+<br><br>
+
+#### 1.9.1.4 Step & Action
+
+<br><br>
+
+#### 1.9.1.5 Summary
+
+<br><br>
 
 <br><br><br>
 

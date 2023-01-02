@@ -39,8 +39,12 @@ func RandomMoney() int64 {
 }
 
 // RandomeCurrency generates a random currency code
-func RandomeCurrency() string {
+func RandomCurrency() string {
 	currencies := []string{"EUR", "USD", "RMB", "JPY", "CAD"}
 	n := len(currencies)
 	return currencies[rand.Intn(n)]
+}
+
+func RandomAccountID() int64 {
+	return RandomInt(0, 1000)
 }

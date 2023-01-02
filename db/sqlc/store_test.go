@@ -16,8 +16,8 @@ func TestTransferTx(t *testing.T) {
 	fmt.Println(">> before:", account1.Balance, account2.Balance)
 
 	// run n concurrent transfer transactions
-	// n := 5
-	n := 1
+	n := 5
+	// n := 1
 	amount := int64(10)
 
 	// use channel. channel is designed to connect concurrency in go rountine
@@ -60,7 +60,7 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, transfer.CreatedAt)
 
 		// make sure transfer record is in db
-		_, err = store.getTransfer(context.Background(), transfer.ID)
+		_, err = store.GetTransfer(context.Background(), transfer.ID)
 		require.NoError(t, err)
 
 		// check entries fromEntry
@@ -71,7 +71,7 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, fromEntry.ID)
 		require.NotZero(t, fromEntry.CreatedAt)
 
-		_, err = store.getEntry(context.Background(), fromEntry.ID)
+		_, err = store.GetEntry(context.Background(), fromEntry.ID)
 		require.NoError(t, err)
 
 		// check entries toEntry
@@ -82,7 +82,7 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, toEntry.ID)
 		require.NotZero(t, toEntry.CreatedAt)
 
-		_, err = store.getEntry(context.Background(), toEntry.ID)
+		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
 		// check accounts
@@ -109,10 +109,10 @@ func TestTransferTx(t *testing.T) {
 	}
 
 	// check the final updated balances
-	updatedAccount1, err := testQueries.getAccount(context.Background(), account1.ID)
+	updatedAccount1, err := testQueries.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 
-	updatedAccount2, err := testQueries.getAccount(context.Background(), account2.ID)
+	updatedAccount2, err := testQueries.GetAccount(context.Background(), account2.ID)
 	require.NoError(t, err)
 
 	fmt.Println(">> after:", updatedAccount1.Balance, updatedAccount2.Balance)
@@ -146,7 +146,7 @@ func TestTransferTxDeadlock(t *testing.T) {
 		// when it's even, account1 -> account2
 		if i%2 == 1 {
 			fromAccountID = account2.ID
-			toAccountID = account2.ID
+			toAccountID = account1.ID
 		}
 
 		go func() {
@@ -169,10 +169,10 @@ func TestTransferTxDeadlock(t *testing.T) {
 	}
 
 	// check the final updated balance
-	updatedAccount1, err := testQueries.getAccount(context.Background(), account1.ID)
+	updatedAccount1, err := testQueries.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 
-	updatedAccount2, err := testQueries.getAccount(context.Background(), account2.ID)
+	updatedAccount2, err := testQueries.GetAccount(context.Background(), account2.ID)
 	require.NoError(t, err)
 
 	fmt.Println(">> after:", updatedAccount1.Balance, updatedAccount2.Balance)
