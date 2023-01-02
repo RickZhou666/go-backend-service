@@ -1032,7 +1032,25 @@ github similar to below:
 $ mkdir -p .github/workflows
 $ cd .github/workflows
 $ touch ci.yml
+```
 
+5. after setup ci.yml and push to github
+6. check `Actions` and ci-test
+7. click init CI workflow
+8. click Jobs `Test` to check status
+
+![imgs](./imgs/Xnip2023-01-02_16-19-29.jpg)
+
+9. declare github postgres actions [link](https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers)
+
+10. check official docker postgres [setup](https://hub.docker.com/_/postgres)
+
+11. setup db schema
+
+```yml
+# add one more step in yml
+- name: Run migrations
+  run: make migrateup
 ```
 
 <br><br><br>
