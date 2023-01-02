@@ -23,7 +23,7 @@ jobs:
         image: postgres:15-alpine
         # Provide the password for postgres
         env:
-          POSTGRES_UESR: root
+          POSTGRES_USER: root
           POSTGRES_PASSWORD: secret
           POSTGRES_DB: simple_bank
         ports:
