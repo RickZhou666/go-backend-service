@@ -1080,6 +1080,52 @@ $ mv migrate /usr/bin/
 
 # Section2: Building RESTful HTTP JSON API [Gin + JWT + PASETO]
 
+## 2.1 Implement RESTful HTTP API in Go using Gin
+
+<br><br>
+
+## 2.2 load config from file & environment variables in Go with Viper
+
+<br><br>
+
+## 2.3 Mock dB for testing HTTP API in Go and Achieve 100% coverage
+
+<br><br>
+
+## 2.4 Implement transfer money API with a custom params validator
+
+<br><br>
+
+## 2.5 Add users table with unique & foreign key constaints in PostgreSQL
+
+<br><br>
+
+## 2.6 How to handle DB errors in Golang correctly
+
+<br><br>
+
+## 2.7 How to securely store passwords? Hash password in Go with Bcrypt!
+
+<br><br>
+
+## 2.8 How to write stronger unit tests with a custom gomock matcher
+
+<br><br>
+
+## 2.9 Why PASETO is better than JWT for token-based authentication?
+
+<br><br>
+
+## 2.10 How to create and verify JWT & PASETO token in Golang
+
+<br><br>
+
+## 2.11 Implement login user API that returns PASETO or JWT access token in Go
+
+<br><br>
+
+## 2.12 Implement authenticaion middleware and authorization rules in Golang using Gin
+
 <br><br><br>
 
 # Section3: Deploying the application to production [Docker + Kubernetes + AWS]
@@ -1089,3 +1135,5 @@ $ mv migrate /usr/bin/
 # Section4: Advanced backend Topics [gRPC]
 
 <br><br><br>
+
+# Section5: Asynchronous processing with background workers [Asynq + Redis]
