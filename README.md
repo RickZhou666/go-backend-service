@@ -1082,6 +1082,36 @@ $ mv migrate /usr/bin/
 
 ## 2.1 Implement RESTful HTTP API in Go using Gin
 
+| Popular web frameworks | Popular HTTP routers |
+| ---------------------- | -------------------- |
+| Gin                    | FastHttp             |
+| Beego                  | Gorrila Mux          |
+| Echo                   | HttpRouter           |
+| Revel                  | Chi                  |
+| Martini                |                      |
+| Fiber                  |                      |
+| Buffalo                |                      |
+
+```bash
+# (1) install Gin
+# https://github.com/gin-gonic/gin
+$ go get -u github.com/gin-gonic/gin
+$ go mod tidy
+
+# (2) handler function declare as *Context
+```
+
+![imgs](./imgs/Xnip2023-01-03_12-40-30.jpg)
+
+```bash
+# (3) validate requests
+https://pkg.go.dev/github.com/go-playground/validator/v10#hdr-Baked_In_Validators_and_Tags
+# One of
+
+# (4) get dependencies
+$ go get github.com/go-delve/delve/service/api
+```
+
 <br><br>
 
 ## 2.2 load config from file & environment variables in Go with Viper
