@@ -31,7 +31,7 @@ Postgres command<br>
 | `\dt;`                                                                       | show all tables                                            |
 | INSERT INTO accounts (owner, balance, currency) VALUES ('rick', 100, 'USD'); | insert column                                              |
 | `LIMIT` and `OFFSET`                                                         | https://www.postgresql.org/docs/current/queries-limit.html |
-| `LIMIT` and `OFFSET`                                                         | `LIMIT=5` at most return 5 records                         |
+| `LIMIT` and `OFFSET`                                                         | `LIMIT=5` at most 5 records in one page                    |
 | `LIMIT` and `OFFSET`                                                         | `OFFSET=10` skip first 10 records                          |
 
 # Section1: Working with database [Postgres + SQLC]
@@ -1080,6 +1080,14 @@ $ mv migrate /usr/bin/
 
 # Section2: Building RESTful HTTP JSON API [Gin + JWT + PASETO]
 
+| Key                              | Value                                                       |
+| -------------------------------- | ----------------------------------------------------------- |
+| Gin Model binding and validation | https://gin-gonic.com/docs/examples/binding-and-validation/ |
+| sqlc config                      | https://docs.sqlc.dev/en/latest/reference/config.html       |
+| viper                            | https://github.com/spf13/viper                              |
+
+<br><br>
+
 ## 2.1 Implement RESTful HTTP API in Go using Gin
 
 | Popular web frameworks | Popular HTTP routers |
@@ -1110,11 +1118,118 @@ https://pkg.go.dev/github.com/go-playground/validator/v10#hdr-Baked_In_Validator
 
 # (4) get dependencies
 $ go get github.com/go-delve/delve/service/api
+
 ```
 
 <br><br>
 
+### 2.1.1 create account
+
+```bash
+# (1) test in postman
+```
+
+![imgs](./imgs/Xnip2023-01-05_10-54-52.jpg)
+
+```bash
+# (2) displayed the response result
+```
+
+![imgs](./imgs/Xnip2023-01-05_10-55-23.jpg)
+
+### 2.1.2 get account
+
+```bash
+# (1) test in postman
+```
+
+![imgs](./imgs/Xnip2023-01-05_11-08-10.jpg)
+
+### 2.1.3 get list of accounts
+
+<br><br>
+
+`pagenation`
+
+[emit_empty_slices](https://docs.sqlc.dev/en/latest/reference/config.html)<br>
+If true, slices returned by :many queries will be empty instead of nil. Defaults to false.
+
+```bash
+# (1) upgrade sqlc to latest version
+$ brew upgrade sqlc
+
+# (2) check sqlc version
+$ sqlc version
+
+# (3) regenerate code
+$ make sqlc
+
+# (4) now items are initialized as empty slice
+```
+
+![imgs](./imgs/Xnip2023-01-05_11-27-53.jpg)
+
+```bash
+# (5) now we returned as empty array instead of null
+```
+
+![imgs](./imgs/Xnip2023-01-05_11-28-50.jpg)
+
+<br><br>
+
 ## 2.2 load config from file & environment variables in Go with Viper
+
+[viper](https://github.com/spf13/viper)<br>
+
+<br><br>
+
+### 2.2.1 why?
+
+1. why file?
+   development: easily specify default configuration for local development and testing
+
+2. why env vars?
+   development: easily override the default configurations when deploy with docker containers
+
+3. why viper? <br>
+   3.1 find, load, unmarshal config file<br>
+   Json, TOML, YAML, ENV, INI<br><br>
+   3.2 Read config from environment variables or flags <br>
+   Override existing values, set default values<br><br>
+   3.3 Read config from remote system<br>
+   Etcd, consul<br><br>
+   3.4 live watching and writing config file<br><br>
+   Reread changed file, save any modifications<br><br>
+
+<br><br>
+
+### 2.2.2 viper setup
+
+```bash
+# (1) install viper
+$ go get github.com/spf13/viper
+
+# (2) create app.env file
+
+# (3) create config.go
+
+# (4) replace variables inside main.go
+
+# (5) test in postman
+
+# (6) override config before call make server
+$ SERVER_ADDRESS=0.0.0.0:8081 make server
+```
+
+![imgs](./imgs/Xnip2023-01-05_12-27-23.jpg)
+
+### 2.2.3 live watching
+
+[live watching](https://github.com/spf13/viper)
+
+### 2.2.4 reading from remote config system
+
+[read from remote](https://github.com/spf13/viper)
 
 <br><br>
 
