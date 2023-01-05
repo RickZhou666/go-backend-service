@@ -6,7 +6,6 @@ import (
 
 	"github.com/RickZhou666/go-backend-service/api"
 	db "github.com/RickZhou666/go-backend-service/db/sqlc"
-	"github.com/go-delve/delve/service/api"
 
 	_ "github.com/lib/pq"
 )
