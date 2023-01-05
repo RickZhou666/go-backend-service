@@ -11,7 +11,7 @@ import (
 // Oneof: https://pkg.go.dev/github.com/go-playground/validator/v10#hdr-Baked_In_Validators_and_Tags
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR RMB"`
+	Currency string `json:"currency" binding:"required,oneof=EUR USD RMB JPY CAD"`
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {
@@ -56,9 +56,13 @@ func (server *Server) getAccount(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
+
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
+	// testing missing call
+	// account = db.Account{}
 
 	ctx.JSON(http.StatusOK, account)
 }

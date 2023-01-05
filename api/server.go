@@ -7,12 +7,12 @@ import (
 
 // Server serves HTTP requests for our banking service.
 type Server struct {
-	store  *db.Store
+	store  db.Store // remove * from server.go, as it's no longer struct pointer type, but interface instead
 	router *gin.Engine
 }
 
 // NewServer creats a new HTTP server and setup routing
-func NewServer(store *db.Store) *Server {
+func NewServer(store db.Store) *Server { // remove * from server.go, as it's no longer struct pointer type, but interface instead
 	server := &Server{store: store}
 	router := gin.Default()
 

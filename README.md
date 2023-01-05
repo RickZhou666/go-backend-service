@@ -1237,6 +1237,181 @@ $ SERVER_ADDRESS=0.0.0.0:8081 make server
 
 <br><br>
 
+### 2.3.1 why and how ?
+
+#### 2.3.1.1 why mock?
+
+1. Independent tests<br>
+   Isolate tests data to avoid conflicts
+
+2. Faster tests<br>
+   Redue a lot of time talking to the database
+
+3. 100% coverage<br>
+   easily setup edge cases: unexpected errors
+
+<br><br>
+
+#### 2.3.1.2 how to mock?
+
+1. use fake db: memory<br>
+   implment a fake version of DB: store data in memory
+   ![imgs](./imgs/Xnip2023-01-05_13-41-29.jpg)
+2. use db stubs: gomock<br>
+   Generate and build stubs that returns hard-coded values
+   ![imgs](./imgs/Xnip2023-01-05_13-41-56.jpg)
+   <br><br>
+
+### 2.3.2 golang mock setup
+
+```bash
+# (1) install gomock
+# https://github.com/golang/mock
+# $ go get github.com/golang/mock/mockgen@v1.6.0 # for version < 1.16
+$ go install github.com/golang/mock/mockgen@v1.6.0
+
+# (2) validate mockgen
+$ which mockgen
+
+# (3) setup path in ~/.zshrc in most beginning
+PATH = $PATH:~/go/bin
+
+# (4) source
+$ source ~/.zshrc
+
+# (5) check again
+$ which mockgen
+```
+
+![imgs](./imgs/Xnip2023-01-05_14-42-10.jpg)
+
+```bash
+# (1) add store interface
+
+# (2) turn on emit_interface -> true in sqlc.yaml
+
+# (3) regenerate
+$ make sqlc
+
+# (4) a new file named querier.go created
+
+# (5) remove * from server.go, as it's no longer struct pointer type, but interface instead
+
+# (6) as we have db.Store interface, now we can use it for mock
+```
+
+### 2.3.3 generate mock
+
+```bash
+# 1, specify path 2, specify interface name 3, sepcify the destination of generated output file
+$ mockgen -destination db/mock/store.go github.com/RickZhou666/go-backend-service/db/sqlc Store
+
+# 2. file generated to db/mock/store.go
+type MockStore struct {}
+type MockStoreMockRecorder struct {}
+
+# 3. change the package name
+$ mockgen -package mockdb -destination db/mock/store.go github.com/RickZhou666/go-backend-service/db/sqlc Store
+
+# 4. add above cmd to MakeFile
+```
+
+### 2.3.4 write mock test
+
+```bash
+# (1) create account_test.go under api
+
+# (2) create random account func
+
+# (3) create new controller
+
+# (4) create new mock store
+
+# (5) setup store mock data
+
+# (6) start test server and send request
+
+# (7) execute unit test for test under api folder
+$ go test -v --cover -count=1 ./api/...
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-23-44.jpg)
+
+2. `testing missing call`
+
+```bash
+# (1) comment store.GetAccount call in account.go
+
+# (2) rerun test
+
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-27-20.jpg)
+
+```bash
+# (3) as we define store.GetAccount func to be called 1 time. it's failed
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-28-06.jpg)
+
+3. `testing response boy`
+
+```bash
+# (1) define body matcher
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-32-46.jpg)<br>
+
+4. `test body not matched condition`<br>
+   ![imgs](./imgs/Xnip2023-01-05_18-32-16.jpg)
+
+<br><br>
+
+### 2.3.5 Gin test mode setup
+
+`click this run button`
+![imgs](./imgs/Xnip2023-01-05_18-54-32.jpg)
+
+<br><br>
+
+1. gin.DebugMode
+
+```go
+gin.SetMode(gin.DebugMode)
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-52-01.jpg)
+
+<br><br>
+
+2.  gin.TestMode
+
+```go
+gin.SetMode(gin.TestMode)
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-53-41.jpg)
+
+<br><br>
+
+3.  gin.ReleaseMode
+
+```go
+gin.SetMode(gin.ReleaseMode)
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-55-29.jpg)
+
+<br><br>
+
+4.  gin.EnvGinMode
+
+```go
+gin.SetMode(gin.EnvGinMode)
+```
+
+![imgs](./imgs/Xnip2023-01-05_18-55-50.jpg)
+
 ## 2.4 Implement transfer money API with a custom params validator
 
 <br><br>
