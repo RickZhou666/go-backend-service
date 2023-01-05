@@ -2,6 +2,26 @@
 
 go-backend-service
 
+<br><br>
+
+## 0.1 Questions
+
+1. when to use uppercase for func? when to use lowercase for func?
+
+```go
+func IsSupportedCurrency(currency string) bool {}
+
+func errorResponse(err error) gin.H {}
+```
+
+2. Difference between `*` and `&`
+
+3. what is BTREE?
+
+<br><br>
+
+## 0.2 Tips
+
 [class udemy page](https://pplearn.udemy.com/course/backend-master-class-golang-postgresql-kubernetes/learn/lecture/25820662?learning_path_id=4257034#overview)
 
 [github/techschool/simplebank](https://github.com/techschool/simplebank)
@@ -17,6 +37,7 @@ go-backend-service
 |                                  | [Short variable declarations](https://go.dev/ref/spec#Short_variable_declarations)          |
 |                                  | a short variable declaration may redeclare variables provided they were originally declared |
 | `curl` man page                  | https://curl.se/docs/manpage.html                                                           |
+| dbdiagram                        | https://dbdiagram.io                                                                        |
 
 <br><br>
 
@@ -33,6 +54,18 @@ Postgres command<br>
 | `LIMIT` and `OFFSET`                                                         | https://www.postgresql.org/docs/current/queries-limit.html |
 | `LIMIT` and `OFFSET`                                                         | `LIMIT=5` at most 5 records in one page                    |
 | `LIMIT` and `OFFSET`                                                         | `OFFSET=10` skip first 10 records                          |
+
+<br><br>
+
+TablePlus command<br>
+
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| refresh data | command + R                     |
+| delete data  | 1. delete 2. command + S        |
+| modify data  | 1. do the change 2. command + S |
+
+<br><br><br>
 
 # Section1: Working with database [Postgres + SQLC]
 
@@ -1416,7 +1449,134 @@ gin.SetMode(gin.EnvGinMode)
 
 <br><br>
 
+### 2.4.1 create transfer API
+
+```bash
+# (1) create struct
+
+# (2) create func
+
+# (3) add endpoint in server.go
+```
+
+<br><br>
+
+### 2.4.2 customized validator for currency field
+
+```bash
+# (1) create currency validator
+
+# (2) define currency util
+
+# (3) setup currency check in server.go and replace in transfer.go handler
+```
+
+![imgs](./imgs/Xnip2023-01-05_22-37-18.jpg)
+
+<br><br>
+
 ## 2.5 Add users table with unique & foreign key constaints in PostgreSQL
+
+### 2.5.1 create new user table
+
+```bash
+# (1) create new users table
+# Z - zero timezone or 00:00:00+00
+password_changed_at timestamptz [not null, default: '0001-01-01 00:00:00Z']
+```
+
+![imgs](./imgs/Xnip2023-01-05_23-14-05.jpg)
+
+```bash
+# (2) one user can have mutilply currency account such USD account, RMB account
+#     but cannot have multiple USD accounts, only one
+```
+
+<br><br>
+
+### 2.5.2 migrate
+
+<br><br>
+
+### 2.5.2.1 replace init schema
+
+1. replace init schema
+2. reset db
+3. run migrate up cmd<br>
+   `this is not applicable in real world`
+
+### 2.5.2.2 create new migration version
+
+```bash
+# (1) create new migration
+$ migrate -help
+$ migrate create -ext sql -dir db/migration -seq add_users
+```
+
+![imgs](./imgs/Xnip2023-01-05_23-35-59.jpg)
+
+```bash
+# (2) due to the dirty version, migrateup or migratedown will fail
+```
+
+![imgs](./imgs/Xnip2023-01-05_23-43-28.jpg)
+
+```bash
+# (3) overwrite dirty to FALSE
+
+# (3) migratedown
+$ make migratedown
+
+# (4) migrate up
+$ make migrateup
+
+# (5) check users table
+```
+
+![imgs](./imgs/Xnip2023-01-05_23-53-07.jpg)<br>
+
+![imgs](./imgs/Xnip2023-01-05_23-54-11.jpg)<br>
+
+### 2.5.2.3 drop down
+
+```bash
+# (1) drop unique constraint for accounts table
+
+# (2) drop foreign key constraint in similar way,
+# check the name by clicking `info` button
+```
+
+![imgs](./imgs/Xnip2023-01-05_23-56-38.jpg)<br>
+
+```bash
+# (3) drop user table
+
+# (4) setup makefile
+
+# (4.1) migrate up to next 1 version
+migrateup1:
+	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
+
+# (4.2) migrate down to next 1 version
+migratedown1:
+	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
+
+# (5) after run migratedown1
+#     users table disappear
+#     constraint in accounts table disappear
+#     schema_migrations version is 1
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-03-07.jpg)
+
+```bash
+# (6) after run migrateup1
+#     users table is here
+#     constraint in accounts table is here
+#     schema_migrations version is 2
+```
+
+<br><br>
 
 <br><br>
 

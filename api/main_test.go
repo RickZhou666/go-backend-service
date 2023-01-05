@@ -9,6 +9,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	gin.SetMode(gin.EnvGinMode)
+	gin.SetMode(gin.ReleaseMode)
 	os.Exit(m.Run())
 }
