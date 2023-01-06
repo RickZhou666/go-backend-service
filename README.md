@@ -18,6 +18,8 @@ func errorResponse(err error) gin.H {}
 
 3. what is BTREE?
 
+4. how to use strut?
+
 <br><br>
 
 ## 0.2 Tips
@@ -1581,6 +1583,112 @@ migratedown1:
 <br><br>
 
 ## 2.6 How to handle DB errors in Golang correctly
+
+<br><br>
+
+### 2.6.1 create user query
+
+```bash
+# (1) create user.sql under query folder
+
+# (2) run sqlc to generate user.sql.go and model in models.go
+$ make sqlc
+
+# (3) write user unit test
+
+# (4) require.True(t, user.PasswordChangedAt.IsZero()) func represnet below
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-30-58.jpg)
+
+```bash
+# (5) if we run packages there will be error due to foreign key
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-33-16.jpg)
+
+```bash
+# (6) bind user to account
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-34-33.jpg)
+
+<br><br>
+
+### 2.6.2 mocktest failure
+
+```bash
+# (1) run make test api/account_test.go failed
+#     as new func added into querier.go
+#     but not added into mock/store.go
+$ make test
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-39-13.jpg)
+
+```bash
+# (2) rerun mock
+$ make mock
+# CreateUser and GetUser func added
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-42-01.jpg)
+
+```bash
+# (3) rerun test
+$ make test
+# all passed
+```
+
+<br><br>
+
+### 2.6.3 test API in postman
+
+```bash
+# (1) create new account
+
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-45-24.jpg)
+
+```bash
+# (2) change in api/accounts.go
+if pqErr, ok := err.(*pq.Error); ok {
+   // used to check error name
+   // log.Println(pqErr.Code.Name())
+   switch pqErr.Code.Name() {
+   case "foreign_key_violation", "unique_violation":
+      ctx.JSON(http.StatusForbidden, errorResponse(err))
+      return
+   }
+}
+```
+
+```bash
+# (3) if we send same account twice
+# 2023/01/06 00:46:48 unique_violation
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-46-57.jpg)
+
+```bash
+# (4) test in API
+```
+
+now response code is 403 Forbidden<br>
+![imgs](./imgs/Xnip2023-01-06_00-50-46.jpg)
+
+<br><br>
+
+### 2.6.4 create EUR acct for same user
+
+```bash
+# (1) change to EUR then make call
+
+# (2) check db
+```
+
+![imgs](./imgs/Xnip2023-01-06_00-54-45.jpg)
 
 <br><br>
 
