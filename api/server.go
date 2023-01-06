@@ -22,6 +22,8 @@ func NewServer(store db.Store) *Server { // remove * from server.go, as it's no 
 		v.RegisterValidation("currency", validCurrency)
 	}
 
+	router.POST("/users", server.createUser)
+
 	router.POST("/accounts", server.createAccount)
 	router.GET("/accounts/:id", server.getAccount)
 	router.GET("/accounts", server.listAccounts)

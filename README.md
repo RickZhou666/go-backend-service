@@ -28,18 +28,19 @@ func errorResponse(err error) gin.H {}
 
 [github/techschool/simplebank](https://github.com/techschool/simplebank)
 
-| Key                              | value                                                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------------------- |
-| `$ history \| grep "docker run"` | display all the commands                                                                    |
-| offset and limit                 | https://dataschool.com/learn-sql/limit/                                                     |
-| `\* \&` sign in golang           | https://go.dev/tour/moretypes/1                                                             |
-| what is go routines              | https://go.dev/tour/concurrency/1                                                           |
-| `:=` and `=`                     | `:=` 初始化并赋值，回覆盖原来的值 <br> `=` 直接赋值                                         |
-|                                  | https://blog.csdn.net/Ivan45007/article/details/121978869                                   |
-|                                  | [Short variable declarations](https://go.dev/ref/spec#Short_variable_declarations)          |
-|                                  | a short variable declaration may redeclare variables provided they were originally declared |
-| `curl` man page                  | https://curl.se/docs/manpage.html                                                           |
-| dbdiagram                        | https://dbdiagram.io                                                                        |
+| Key                                     | value                                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `$ history \| grep "docker run"`        | display all the commands                                                                    |
+| offset and limit                        | https://dataschool.com/learn-sql/limit/                                                     |
+| `\* \&` sign in golang                  | https://go.dev/tour/moretypes/1                                                             |
+| what is go routines                     | https://go.dev/tour/concurrency/1                                                           |
+| `:=` and `=`                            | `:=` 初始化并赋值，回覆盖原来的值 <br> `=` 直接赋值                                         |
+|                                         | https://blog.csdn.net/Ivan45007/article/details/121978869                                   |
+|                                         | [Short variable declarations](https://go.dev/ref/spec#Short_variable_declarations)          |
+|                                         | a short variable declaration may redeclare variables provided they were originally declared |
+| `curl` man page                         | https://curl.se/docs/manpage.html                                                           |
+| dbdiagram                               | https://dbdiagram.io                                                                        |
+| $ go test -v --cover -count=1 ./api/... | run `api` 目录下的所有 test                                                                 |
 
 <br><br>
 
@@ -227,7 +228,7 @@ RETURNING *;
 # -cover        :to measure code coverage
 # ./...         :to run all uts
 # -count=1      :to disable cache. otherwise it will read from cache directly
-go test -v --cover -count=1 ./...
+$ go test -v --cover -count=1 ./...
 ```
 
 if has `Testxxxx` prefix, it will run as unit test<br>
@@ -1694,7 +1695,107 @@ now response code is 403 Forbidden<br>
 
 ## 2.7 How to securely store passwords? Hash password in Go with Bcrypt!
 
+### 2.7.1 Securely store password principle
+
+1. Hash it & store its hash value
+   ![imgs](./imgs/Xnip2023-01-06_10-24-59.jpg)
+
+2. retrieve and compare
+   ![imgs](./imgs/Xnip2023-01-06_10-25-54.jpg)
+
 <br><br>
+
+### 2.7.2 implementation hash func
+
+```bash
+# (1) create password.go
+# (2) create password_test.go
+
+# (3) replace to user_test.go
+# (4) run all test
+$ go test -v --cover -count=1 ./...
+# all passed
+```
+
+<br><br>
+
+### 2.7.3 if same password hashed twice, two differnt hashed value should be returned
+
+`random salt value was generated`
+![imgs](./imgs/Xnip2023-01-06_10-51-36.jpg)
+<br><br>
+
+### 2.7.4 create user handler
+
+```bash
+# (1) create user api handler
+
+# (2) register in server.go
+
+# (3) start server
+$ make server
+
+# (4) send request
+# successful
+
+# (5) send 2nd time
+# got 403 forbidden error
+# "error": "pq: duplicate key value violates unique constraint \"users_pkey\""
+```
+
+![imgs](./imgs/Xnip2023-01-06_11-05-57.jpg)
+
+```bash
+# (6) create with same email address
+# got 403 forbidden error
+# "error": "pq: duplicate key value violates unique constraint \"users_email_key\""
+```
+
+![imgs](./imgs/Xnip2023-01-06_11-07-53.jpg)
+
+```bash
+# (7) which point to users table two constraint
+#     (7.1) users_pkey
+#     (7.1) users_email_key
+```
+
+![imgs](./imgs/Xnip2023-01-06_11-08-39.jpg)
+
+```bash
+# (8) invalid username
+# 400 bad request
+# "error": "Key: 'createUserRequest.Username' Error:Field validation for 'Username' failed on the 'alphanum' tag"
+```
+
+![imgs](./imgs/Xnip2023-01-06_11-11-46.jpg)
+
+```bash
+# (9) invalid email
+# 400 bad request
+# "error": "Key: 'createUserRequest.Email' Error:Field validation for 'Email' failed on the 'email' tag"
+```
+
+![imgs](./imgs/Xnip2023-01-06_11-13-10.jpg)
+
+```bash
+# (10) invalid password too short
+# 400 bad request
+# "error": "Key: 'createUserRequest.Password' Error:Field validation for 'Password' failed on the 'min' tag"
+```
+
+![imgs](./imgs/Xnip2023-01-06_11-14-03.jpg)
+
+```bash
+# (11) we should not return hashed password
+
+# (12) add createUserResponse struct
+
+# (13) restart server
+
+# there is no hased password returned
+```
+
+![imgs](./imgs/Xnip2023-01-06_11-18-19.jpg)
 
 ## 2.8 How to write stronger unit tests with a custom gomock matcher
 
