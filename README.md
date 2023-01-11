@@ -68,6 +68,7 @@ func errorResponse(err error) gin.H {}
 | dbdiagram                               | https://dbdiagram.io                                                                        |
 | $ go test -v --cover -count=1 ./api/... | run `api` 目录下的所有 test                                                                 |
 | fmt.Printf() reference                  | https://programming.guide/go/fmt-printf-reference-cheat-sheet.html                          |
+| Paragon Initiative Enterprises          | https://paragonie.com/                                                                      |
 
 <br><br>
 
@@ -1844,6 +1845,80 @@ hashedPassword, err := util.HashPassword("xyz")
 
 ## 2.9 Why PASETO is better than JWT for token-based authentication?
 
+<br><br>
+
+### 2.9.1 token-based authentication
+
+![imgs](./imgs/Xnip2023-01-11_23-33-53.jpg)
+<br><br>
+
+### 2.9.2 Json Web Token - JWT
+
+![imgs](./imgs/Xnip2023-01-11_23-34-16.jpg)
+<br><br>
+
+### 2.9.3 JWT signing Algorithms
+
+1. Symmetric digital signature algorithm
+
+- The same secret key is used to sign & verify token
+- for local user: internal services, where the secret key can be shared
+- HS256, HS384, HS512
+  - HS256 = HMAC + SHA256
+  - HMAC: Hashed-based Message Authentication Code
+  - SHA: Secure Hash Algorithm
+  - 256/384/512: number of output bits
+
+2. Asymmetric digital signature algorithm
+
+- The private key is used to sign token
+- The public key is used to verify token
+- For public use: internal service signs token, but external service needs to verify it
+- RS256, RS383, RS512 || PS256, PS383, PS512 || ES256, ES383, ES512
+  - RS256 = RSA PKCSv1.5 + SHA256 [PKCS: Public-Key Cryptography Standards]
+  - PS256 = RSA PSS + SHA256 [PSS: Probabilistic Signature Scheme]
+  - ES256 = ECDSA + SHA256 [ECDSA: Elliptic Curve Digital Signature Algorithm]
+
+<br><br>
+
+### 2.9.4 What's the problem of JWT?
+
+1. Weak Algorithms
+
+- Give developers too many algorithms to choose
+- Some algorithms are konwn to be vulnerable:
+  - RSA PKCSv1.5: Padding oracle attack
+  - ECDSA: invalid-curve attack
+
+2. Trivial Forgery
+
+- Set "alg" header to "none"
+- Set "alg" header to "HS256" while the server normally verifies token with a RSA public key
+
+![imgs](./imgs/Xnip2023-01-11_23-34-28.jpg)
+
+<br><br>
+
+### 2.9.5 Platform-Agnostic SEcurity TOkens [PASETO]
+
+1. Stronger algorithms
+
+- Developers don't have to choose the algorithm
+- Only need to select the version of PASETO
+- Each version has 1 strong cipher suite
+- Only 2 most recent PASETO versions are accepted
+
+2. Non-trivial Forgery
+
+- No more "alg" header or "none" algorithm
+- Everything is authenticated
+- Encrypted payload for local use <symmetric key>
+
+<br><br>
+
+### 2.9.5 PASETO Structure
+
+![imgs](./imgs/Xnip2023-01-11_23-34-45.jpg)
 <br><br>
 
 ## 2.10 How to create and verify JWT & PASETO token in Golang
