@@ -6,7 +6,14 @@ go-backend-service
 
 ## 0.1 Questions
 
-1. when to use uppercase for func? when to use lowercase for func?
+1. when to use uppercase for func? when to use lowercase for func?<br>
+
+[stackoverflow answer](https://stackoverflow.com/a/38616867/7163137)<br>
+In Golang, `1.` any variable (or a function) with an identifier starting with an upper-case letter (example, CamelCase) is made public (accessible) to all other packages in your program,<br>
+
+`2.` whereas those starting with a lower-case letter (example, camelCase) is not accessible to any package except the one it is being declared in.<br>
+
+`3.` You should use CamelCase in case you intend to use the variable (or function) in another package, or you can safely stick with camelCase.
 
 ```go
 func IsSupportedCurrency(currency string) bool {}
@@ -19,6 +26,25 @@ func errorResponse(err error) gin.H {}
 3. what is BTREE?
 
 4. how to use strut?
+
+5. what is 32bit and 64bit?
+
+6. difference between int64 and uint64
+
+- int64: signed int 64 type
+- uint64: unsigned int 64 type
+- https://stackoverflow.com/questions/50815512/when-casting-an-int64-to-uint64-is-the-sign-retained
+- [two's complement](https://en.wikipedia.org/wiki/Two%27s_complement): a mathematical operation to reversibly convert a positive binary number into a negative binary number with equivalent (but negative) value
+
+7. what 0x stands for?<br>
+   [ref](<https://blog.csdn.net/mouday/article/details/107356090#:~:text=%E5%85%AB%E8%BF%9B%E5%88%B6(Octal)%EF%BC%9A0%2D,.......>)<br>
+   `0x140000162f8`
+   > a prefix for hexadecimal numeric constants in computing<br>
+
+- `prefix: 0b/0B. suffix: b/B`: Binary type 0b1111 = 15
+- `prefix: 0. suffix: o/O`: Octal
+- `prefix: ø. suffix: d/D`: Decimal
+- `prefix: 0x/0X. suffix: h/H` Hexdecimal
 
 <br><br>
 
@@ -41,6 +67,7 @@ func errorResponse(err error) gin.H {}
 | `curl` man page                         | https://curl.se/docs/manpage.html                                                           |
 | dbdiagram                               | https://dbdiagram.io                                                                        |
 | $ go test -v --cover -count=1 ./api/... | run `api` 目录下的所有 test                                                                 |
+| fmt.Printf() reference                  | https://programming.guide/go/fmt-printf-reference-cheat-sheet.html                          |
 
 <br><br>
 
@@ -1798,6 +1825,20 @@ $ make server
 ![imgs](./imgs/Xnip2023-01-06_11-18-19.jpg)
 
 ## 2.8 How to write stronger unit tests with a custom gomock matcher
+
+### 1. flaws
+
+```bash
+(1) cannot cover empty user case
+arg = db.CreateUserParams{}
+
+(2) cannot cover weak password
+hashedPassword, err := util.HashPassword("xyz")
+
+(3) create customized matcher to check
+```
+
+> missing underscore <br> > ![imgs](./imgs/Xnip2023-01-11_22-49-33.jpg)
 
 <br><br>
 

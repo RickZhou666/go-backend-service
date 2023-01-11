@@ -14,7 +14,7 @@ type createUserRequest struct {
 	//													alphanum - contain alphabet and digits only
 	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=6"`
-	FullName string `json:"fullname" binding:"required"`
+	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 }
 
@@ -34,8 +34,9 @@ func (server *Server) createUser(ctx *gin.Context) {
 	}
 
 	hashedPassword, err := util.HashPassword(req.Password)
+	// hashedPassword, err := util.HashPassword("xyz")
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(nil))
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -45,6 +46,8 @@ func (server *Server) createUser(ctx *gin.Context) {
 		FullName:       req.FullName,
 		Email:          req.Email,
 	}
+
+	// arg = db.CreateUserParams{}
 
 	user, err := server.store.CreateUser(ctx, arg)
 	if err != nil {
