@@ -1923,6 +1923,29 @@ hashedPassword, err := util.HashPassword("xyz")
 
 ## 2.10 How to create and verify JWT & PASETO token in Golang
 
+### 2.10.1 implement JWT token
+
+```bash
+# (1) download uuid pkg
+$ go get github.com/google/uuid
+
+# (2) install JWT
+$ go get github.com/dgrijalva/jwt-go
+
+# (3) missing func of interface
+```
+
+![imgs](./imgs/Xnip2023-01-12_11-16-53.jpg)
+
+### 2.10.1 implement PASETO token
+
+```bash
+# (1) download PASETo
+$ go get github.com/o1egl/paseto
+
+
+```
+
 <br><br>
 
 ## 2.11 Implement login user API that returns PASETO or JWT access token in Go
