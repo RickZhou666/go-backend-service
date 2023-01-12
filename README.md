@@ -2060,6 +2060,24 @@ $ make mock
 
 ### 2.12.3 Update all API unit test
 
+### 2.12.4 test API calls
+
+1. token expired as we defined as 15m in app.env
+
+![imgs](./imgs/Xnip2023-01-13_02-12-53.jpg)
+
+2. list accounts with active token
+
+![imgs](./imgs/Xnip2023-01-13_02-16-52.jpg)
+
+3. transfer money
+
+![imgs](./imgs/Xnip2023-01-13_02-19-53.jpg)
+
+4. unauthorized user cannot make txn
+
+![imgs](./imgs/Xnip2023-01-13_02-20-37.jpg)
+
 <br><br><br>
 
 # Section3: Deploying the application to production [Docker + Kubernetes + AWS]
