@@ -1952,6 +1952,53 @@ $ go get github.com/o1egl/paseto
 
 <br><br>
 
+### 2.11.0 Implmentation
+
+```bash
+# (1) add token config in config.go
+# (2) add config var to NewServer func in server.go, so it will support token creation
+
+# (3) add loginUser handler in user.go
+
+# (4) add new endpoint in server.go
+
+# (5) start api call to test
+```
+
+<br><br>
+
+### 2.11.1 Error
+
+> the json variable is different<br><br>
+
+![imgs](./imgs/Xnip2023-01-12_23-59-21.jpg)
+<br><br>
+
+### 2.11.2 return PASETO access token
+
+```go
+tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+```
+
+![imgs](./imgs/Xnip2023-01-13_00-02-06.jpg)
+<br><br>
+
+### 2.11.3 return JWT access token
+
+```go
+tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+```
+
+![imgs](./imgs/Xnip2023-01-13_00-04-11.jpg)
+
+<br><br>
+
 ## 2.12 Implement authenticaion middleware and authorization rules in Golang using Gin
 
 <br><br><br>
