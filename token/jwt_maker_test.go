@@ -1,6 +1,7 @@
 package token
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 
 func TestJWTMaker(t *testing.T) {
 	maker, err := NewJWTMaker(util.RandomString(32))
+	fmt.Printf("maker type is %T", maker)
 	require.NoError(t, err)
 
 	username := util.RandomOwner()
@@ -50,6 +52,7 @@ func TestExpiredJWTMaker(t *testing.T) {
 
 // VerifyToken checks if the token is valid or not
 func TestInvalidJWTMaker(t *testing.T) {
+	// 1. create a new jwtToken
 	payload, err := NewPayload(util.RandomOwner(), time.Minute)
 	require.NoError(t, err)
 
@@ -57,9 +60,11 @@ func TestInvalidJWTMaker(t *testing.T) {
 	token, err := jwtToken.SignedString(jwt.UnsafeAllowNoneSignatureType)
 	require.NoError(t, err)
 
+	// 2. create a new token maker
 	maker, err := NewJWTMaker(util.RandomString(32))
 	require.NoError(t, err)
 
+	// 3. use this new token maker to verify the jwtToken we created
 	payload, err = maker.VerifyToken(token)
 	require.Error(t, err)
 	require.EqualError(t, err, ErrInvalidToken.Error())

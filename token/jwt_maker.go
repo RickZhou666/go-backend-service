@@ -21,6 +21,7 @@ func NewJWTMaker(secretKey string) (Maker, error) {
 	if len(secretKey) < minSecretKeySize {
 		return nil, fmt.Errorf("invalid key size: must be at least %d characters", minSecretKeySize)
 	}
+	// it's a variable, &JWTMaker, then we return a JWTMaker pointer type
 	return &JWTMaker{secretKey}, nil
 }
 

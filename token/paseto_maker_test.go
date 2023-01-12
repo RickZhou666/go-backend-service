@@ -48,19 +48,25 @@ func TestExpiredPasetoMaker(t *testing.T) {
 }
 
 // VerifyToken checks if the token is valid or not
-// func TestInvalidPasetoMaker(t *testing.T) {
-// 	payload, err := NewPayload(util.RandomOwner(), time.Minute)
-// 	require.NoError(t, err)
+func TestInvalidPasetoMaker(t *testing.T) {
+	// 1. create a new PASETO token via maker1
+	maker1, err := NewPasetoMaker(util.RandomString(32))
+	require.NoError(t, err)
 
-// 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)
-// 	token, err := jwt.Token.SingedString(jwt.UnsafeAllowNoneSignatureType)
-// 	require.NoError(t, err)
+	username := util.RandomOwner()
+	duration := time.Minute
 
-// 	maker, err := NewPasetoMaker(util.RandomString(32))
-// 	require.NoError(t, err)
+	token, err := maker1.CreateToken(username, duration)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
 
-// 	payload, err = maker.VerifyToken(token)
-// 	require.Error(t, err)
-// 	require.EqualError(t, err, ErrInvalidToken.Error())
-// 	require.Nil(t, payload)
-// }
+	// 2. create another PASETO token maker2
+	maker2, err := NewPasetoMaker(util.RandomString(32))
+	require.NoError(t, err)
+
+	// 3. use maker2 to verify maker1's token
+	payload, err := maker2.VerifyToken(token)
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInvalidToken.Error())
+	require.Nil(t, payload)
+}
