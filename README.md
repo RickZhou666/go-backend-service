@@ -1954,6 +1954,8 @@ $ go get github.com/o1egl/paseto
 
 ### 2.11.0 Implmentation
 
+![imgs](./imgs/Xnip2023-01-13_00-14-09.jpg)
+
 ```bash
 # (1) add token config in config.go
 # (2) add config var to NewServer func in server.go, so it will support token creation
@@ -2000,6 +2002,63 @@ tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
 <br><br>
 
 ## 2.12 Implement authenticaion middleware and authorization rules in Golang using Gin
+
+<br><br>
+
+### 2.12.1 implementaion
+
+```bash
+# (1) add middleware
+# (2) add middleware unit test
+
+# (3) Account and Transfer call will call middleware first
+
+# (4) change Account and Transfer UT, as it will go through middle first
+
+# (5) createAccount via authorizationPayload
+```
+
+<br><br>
+
+### 2.12.2 Authorization Rules
+
+<br><br>
+
+#### 1. API Create account
+
+`A logged-in user can only create an account for him/herself`
+
+<br><br>
+
+#### 2. API Get account
+
+`a logged-in user can only get accounts that he/she owns`
+
+<br><br>
+
+#### 3. API List accounts
+
+`a logged-in user can only list accounts that belong to him/her`
+
+```bash
+# (1) update list accounts query add owner condition
+
+# (2) update query
+$ make sqlc
+
+# (3) regenerate mockstore for our api unit test
+$ make mock
+```
+
+<br><br>
+
+#### 4. API Transfer money
+
+`A logged-in user can only send money from his/her own account`
+
+<br><br>
+
+### 2.12.3 Update all API unit test
 
 <br><br><br>
 
